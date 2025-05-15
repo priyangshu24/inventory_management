@@ -16,92 +16,89 @@ const client_1 = require("@prisma/client");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const prisma = new client_1.PrismaClient();
-// Define the correct order for deleting data (reverse of dependencies)
-const deleteOrder = [
-    "expenseByCategory.json", // Delete child tables first
-    "salesSummary.json",
-    "purchaseSummary.json",
-    "expenseSummary.json",
-    "sales.json",
-    "purchases.json",
-    "expenses.json",
-    "products.json",
-    "users.json",
-];
-// Define the correct order for creating data (dependencies first)
-const createOrder = [
-    "users.json",
-    "products.json",
-    "expenses.json",
-    "expenseSummary.json", // Create parent tables before children
-    "expenseByCategory.json",
-    "sales.json",
-    "purchases.json",
-    "salesSummary.json",
-    "purchaseSummary.json",
-];
-function deleteAllData(orderedFileNames) {
+function deleteAllData() {
     return __awaiter(this, void 0, void 0, function* () {
-        for (const fileName of orderedFileNames) {
-            const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
-            const capitalizedModelName = modelName.charAt(0).toUpperCase() + modelName.slice(1);
-            const model = prisma[capitalizedModelName];
-            if (model) {
-                try {
-                    yield model.deleteMany();
-                    console.log(`✓ Cleared data from ${capitalizedModelName}`);
-                }
-                catch (error) {
-                    if (error.code === 'P2003') {
-                        console.log(`⚠ Skipping ${capitalizedModelName} due to foreign key constraint`);
-                        continue;
-                    }
-                    console.error(`❌ Error deleting from ${capitalizedModelName}:`, error);
-                }
-            }
+        try {
+            // Delete in correct order (children first, then parents)
+            console.log('Deleting existing data...');
+            // First, delete dependent tables
+            yield prisma.expenseByCategory.deleteMany();
+            console.log('✓ Cleared ExpenseByCategory');
+            yield prisma.sales.deleteMany();
+            console.log('✓ Cleared Sales');
+            yield prisma.purchases.deleteMany();
+            console.log('✓ Cleared Purchases');
+            // Then delete summary tables
+            yield prisma.expenseSummary.deleteMany();
+            console.log('✓ Cleared ExpenseSummary');
+            yield prisma.salesSummary.deleteMany();
+            console.log('✓ Cleared SalesSummary');
+            yield prisma.purchaseSummary.deleteMany();
+            console.log('✓ Cleared PurchaseSummary');
+            // Finally delete independent tables
+            yield prisma.expenses.deleteMany();
+            console.log('✓ Cleared Expenses');
+            yield prisma.products.deleteMany();
+            console.log('✓ Cleared Products');
+            yield prisma.users.deleteMany();
+            console.log('✓ Cleared Users');
+        }
+        catch (error) {
+            console.error('Error during deletion:', error);
+            throw error;
         }
     });
 }
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         const dataDirectory = path_1.default.join(__dirname, "seedData");
-        console.log("🗑️  Deleting existing data...");
-        yield deleteAllData(deleteOrder);
-        console.log("\n🌱 Seeding new data...");
-        for (const fileName of createOrder) {
-            const filePath = path_1.default.join(dataDirectory, fileName);
-            try {
-                const jsonData = JSON.parse(fs_1.default.readFileSync(filePath, "utf-8"));
-                const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
-                const capitalizedModelName = modelName.charAt(0).toUpperCase() + modelName.slice(1);
-                const model = prisma[capitalizedModelName];
-                if (!model) {
-                    console.error(`❌ No Prisma model matches the file name: ${fileName}`);
+        // Define creation order (parents first, then children)
+        const orderedFileNames = [
+            "users.json",
+            "products.json",
+            "expenseSummary.json",
+            "salesSummary.json",
+            "purchaseSummary.json",
+            "expenses.json",
+            "sales.json",
+            "purchases.json",
+            "expenseByCategory.json",
+        ];
+        try {
+            yield deleteAllData();
+            for (const fileName of orderedFileNames) {
+                const filePath = path_1.default.join(dataDirectory, fileName);
+                if (!fs_1.default.existsSync(filePath)) {
+                    console.log(`⚠️ Skipping ${fileName} - file not found`);
                     continue;
                 }
-                for (const data of jsonData) {
-                    try {
+                try {
+                    const jsonData = JSON.parse(fs_1.default.readFileSync(filePath, "utf-8"));
+                    const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
+                    const model = prisma[modelName];
+                    if (!model) {
+                        console.error(`❌ No Prisma model matches the file name: ${fileName}`);
+                        continue;
+                    }
+                    for (const data of jsonData) {
                         yield model.create({ data });
                     }
-                    catch (error) {
-                        if (error.code === 'P2002') {
-                            console.log(`⚠ Skipping duplicate entry in ${modelName}`);
-                            continue;
-                        }
-                        throw error;
-                    }
+                    console.log(`✓ Seeded ${modelName} with data from ${fileName}`);
                 }
-                console.log(`✓ Seeded ${modelName}`);
+                catch (error) {
+                    console.error(`❌ Error processing ${fileName}:`, error);
+                }
             }
-            catch (error) {
-                console.error(`❌ Error seeding ${fileName}:`, error);
-            }
+        }
+        catch (error) {
+            console.error('❌ Seed failed:', error);
+            throw error;
         }
     });
 }
 main()
     .catch((e) => {
-    console.error("❌ Seed failed:", e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
 })
     .finally(() => __awaiter(void 0, void 0, void 0, function* () {

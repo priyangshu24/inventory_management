@@ -1,13 +1,15 @@
 import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
-import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
-/* IMPORT ROUTES */
-import dashboardRoutes from './routes/dashboardRoutes';
+/* ROUTE IMPORTS */
+import dashboardRoutes from './routes/dashboardRoutes'; 
+import productRoutes from './routes/productRoutes';
 
-/* CONFIGURATION */
+/* CONFIGURATIONS  */ 
+
 dotenv.config();
 const app = express();
 app.use(express.json());
@@ -19,11 +21,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 
 /* ROUTES */
-app.use("/dashboard", dashboardRoutes); // http://localhost:8000/dashboard
-
-
-/* START SERVER */
+app.use("/dashboard", dashboardRoutes); //dashboard
+app.use("/products", productRoutes) //product
+/* SERVER */
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+    console.log(`Server is running on port ${PORT}`);
+})
