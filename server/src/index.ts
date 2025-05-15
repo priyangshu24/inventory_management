@@ -7,6 +7,7 @@ import helmet from 'helmet';
 /* ROUTE IMPORTS */
 import dashboardRoutes from './routes/dashboardRoutes'; 
 import productRoutes from './routes/productRoutes';
+import userRoutes from './routes/userRoutes';
 
 /* CONFIGURATIONS  */ 
 
@@ -23,7 +24,9 @@ app.use(cors());
 /* ROUTES */
 app.use("/dashboard", dashboardRoutes); //dashboard
 app.use("/products", productRoutes) //product
+app.use("/users", userRoutes) //user
 /* SERVER */
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
