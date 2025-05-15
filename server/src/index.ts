@@ -9,6 +9,8 @@ import dashboardRoutes from './routes/dashboardRoutes';
 import productRoutes from './routes/productRoutes';
 import userRoutes from './routes/userRoutes';
 
+
+
 /* CONFIGURATIONS  */ 
 
 dotenv.config();
@@ -25,6 +27,7 @@ app.use(cors());
 app.use("/dashboard", dashboardRoutes); //dashboard
 app.use("/products", productRoutes) //product
 app.use("/users", userRoutes) //user
+ //expense
 /* SERVER */
 
 const PORT = process.env.PORT || 3001;

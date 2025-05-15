@@ -27,6 +27,7 @@ app.use((0, cors_1.default)());
 app.use("/dashboard", dashboardRoutes_1.default); //dashboard
 app.use("/products", productRoutes_1.default); //product
 app.use("/users", userRoutes_1.default); //user
+//expense
 /* SERVER */
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
