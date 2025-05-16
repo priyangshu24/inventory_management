@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import dashboardRoutes from './routes/dashboardRoutes'; 
 import productRoutes from './routes/productRoutes';
 import userRoutes from './routes/userRoutes';
+import expenseRoutes from './routes/expenseRoutes';
 
 
 
@@ -27,7 +28,7 @@ app.use(cors());
 app.use("/dashboard", dashboardRoutes); //dashboard
 app.use("/products", productRoutes) //product
 app.use("/users", userRoutes) //user
- //expense
+app.use("/expenses", expenseRoutes); //expense
 /* SERVER */
 
 const PORT = process.env.PORT || 3001;

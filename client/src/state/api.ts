@@ -88,7 +88,7 @@ export const api = createApi({
       query: () => "/expenses",
       providesTags: ["Expenses"],
     }),
-  }),
+   }),
 });
 
 export const {
